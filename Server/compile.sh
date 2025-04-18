@@ -1,0 +1,1 @@
+gcc -Wall -Werror -o server main.c lib/client_handler.c lib/client_listener.c lib/communication_handler.c lib/communication_list_handler.c lib/mthread_handler.c lib/server_request_handler.c
