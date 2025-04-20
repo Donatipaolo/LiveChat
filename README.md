@@ -2,14 +2,10 @@
 
 **LiveChat** è un progetto personale che simula un'applicazione di chat in tempo reale, realizzata in C. È composto da un server e un client che comunicano tramite socket.
 
-![Screenshot](./screenshot.png)
-
 ## 🚀 Funzionalità
 
 - **Messaggistica in tempo reale** tra utenti
-- **Chat private e di gruppo**
-- **Notifiche** per nuovi messaggi
-- **Storico delle conversazioni**
+- **Chat private**
 
 ## 📦 Installazione
 
@@ -17,3 +13,23 @@
 
    ```bash
    git clone https://github.com/Donatipaolo/LiveChat.git
+
+2. Compila il Server
+   ```bash
+   cd ./LiveChat/Server
+   chmod +x compile.sh
+   ./compile.sh
+
+3. Esegui il Server
+   ```bash
+   ./server
+
+4. Compila il Client
+   ```bash
+   cd ./LiveChat/Client
+   chmod +x compile.sh
+   ./compile.sh
+
+   5. Esegui il Client
+      ```bash
+      ./client
