@@ -142,9 +142,6 @@ void create_connection_request(struct server_request_handler_pck* pck,struct cli
             //Tolgo il file descriptor dal setfd (del requester)
             FD_CLR(sfd,&fd);
 
-            //Test
-            print_request_list(list_request);
-
             return;
         }
     } 
