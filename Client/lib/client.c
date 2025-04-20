@@ -564,10 +564,9 @@ void print_other_msg(char usr[USERNAME_LENGHT],char buffer[MAX_MSG_LENGHT]){
 ////////////////////////////////////////////////////////////////////////////////////
 //Altre funzioni
 
-void wait_key_press(){
+void wait_key_press() {
     printf("Premi Invio per continuare...");
-    getchar();
-    clear_input_buffer();
+    while (getchar() != '\n'); // legge tutto fino a \n
 }
 
 void change_clients_dim(int dim){
