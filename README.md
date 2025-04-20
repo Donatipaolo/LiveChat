@@ -30,6 +30,6 @@
    chmod +x compile.sh
    ./compile.sh
 
-   5. Esegui il Client
+5. Esegui il Client
       ```bash
       ./client
