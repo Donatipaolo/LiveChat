@@ -119,7 +119,7 @@ void create_connection_request(struct server_request_handler_pck* pck,struct cli
     struct client* cli = get_client_by_username((char*)pck->bytes); //Primi 100 bytes
     char *buffer = NULL;
     int status = -1;
-    printf("Nome letto : %s\n",(char*)pck->bytes);
+    //printf("Nome letto : %s\n",(char*)pck->bytes);
     
     if(cli != NULL){
         //Se esiste avvio la procedura
