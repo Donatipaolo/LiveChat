@@ -85,7 +85,7 @@ void* client_listener(void* arg){
         //*((int*)(parameters + sizeof(int))) = id;
         // printf("Client.\nsockfd : %d\npipefd : %d\n\n",par->file_descriptor,par->pipefdr);
 
-		pthread_create(&id,NULL,init_client,(void*)par);
+	pthread_create(&id,NULL,init_client,(void*)par);
         //aggiungo alla lista dei thread
 
         write(pipefd[1],&id,sizeof(pthread_t));
