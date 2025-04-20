@@ -589,7 +589,7 @@ void change_clients_dim(int dim){
 }
 
 void clear_input_buffer() {
-    char ch = ' ';
+    int ch = 0;
     while (ch != '\n' && ch != EOF) {
         ch = getchar();  // Consuma i caratteri rimanenti nel buffer
     }
