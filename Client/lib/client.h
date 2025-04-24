@@ -15,7 +15,7 @@
 #define MAX_MSG_LENGHT 1024
 #define MAX_LENGHT_SERVER_REQUEST_PCK 1024
 
-extern char **clients;
+extern struct client_info **clients;
 extern int clients_dim;
 extern int clients_current;
 
@@ -39,6 +39,10 @@ struct communication_handler_pck{
     uint8_t bytes[MAX_MSG_LENGHT];
 };
 
+struct client_info{
+    char buffer[USERNAME_LENGHT];
+    int status;
+};
 
 //Funzioni del client
 
@@ -70,10 +74,10 @@ void wait_for_start_communication(int sockfd);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //Funzioni per la parte grafica
-void print_client(char *buffers[],int size);
+void print_client(struct client_info **info, int n_client);
 void print_communication_wait(char buffer[USERNAME_LENGHT]);
 void print_communication_accept(char buffer[USERNAME_LENGHT]);
-void print_communication_refuse(char buffer[USERNAME_LENGHT]);
+void print_communication_refuse(struct server_request_handler_pck *pck,char buffer[USERNAME_LENGHT]);
 void print_communication_request(char buffer[USERNAME_LENGHT]);
 void print_init_communication(char buffer[USERNAME_LENGHT]);
 void print_my_msg(char buffer[MAX_MSG_LENGHT]);
@@ -86,5 +90,8 @@ void wait_key_press();
 void clear_last_lines(int n);
 void clear_input_buffer();
 void strip_newline(char *str);
+
+//Per prendere in input in maniera sicura le stringhe
+int safe_fgets(char *buffer,ssize_t dim);
 
 #endif

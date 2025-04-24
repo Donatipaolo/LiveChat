@@ -11,7 +11,7 @@
 #define MAX_SIZE 1024
 char IP[] =  "127.0.0.1";
 
-char **clients = NULL;
+struct client_info **clients = NULL;
 int clients_dim = 0;
 int clients_current = 0;
 

@@ -504,6 +504,7 @@ void change_username(const struct client_list* head,const char buffer[USERNAME_L
 //Funzioni per clients update
 void send_all_username(int sockfd){
     int dim = size(list_client) -1;//Oltre se stesso
+    struct client_info info;
 
     write(sockfd,&dim,sizeof(int));
     if(dim == 0) return;
@@ -512,7 +513,9 @@ void send_all_username(int sockfd){
 
     while(current != NULL){
         if(current->cli->fd != sockfd){
-            write(sockfd,current->cli->username,USERNAME_LENGHT);
+            info.status= current->cli->status;
+            memcpy(info.buffer,current->cli->username,USERNAME_LENGHT);
+            write(sockfd,&info,sizeof(struct client_info));
         }
         current = current->next;
     }

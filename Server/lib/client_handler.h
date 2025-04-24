@@ -13,6 +13,11 @@ struct client{
     //struct client* com;
 };
 
+struct client_info{
+    char buffer[USERNAME_LENGHT];
+    int status;
+};
+
 #define MAX_CLIENT_PCK_LENGHT sizeof(struct client)
 
 struct client_handler_pck{

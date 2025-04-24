@@ -3,10 +3,6 @@
 #include <sys/socket.h>
 
 
-
-
-
-
 //Function
 void change_username(int sockfd){
 
@@ -21,7 +17,7 @@ void change_username(int sockfd){
         fflush(stdout);
         
         // Leggo l'input in modo sicuro
-        if (fgets(buffer, USERNAME_LENGHT - 1, stdin) == NULL) {
+        if (safe_fgets(buffer, USERNAME_LENGHT - 1) == 0) {
             printf("Errore nella lettura dell'input\n");
             exit(1);
         }
@@ -69,13 +65,14 @@ void update_client(int sockfd){
     //inserisco gli username nel clients
     for(int i = 0; i < dim; i++){
         //leggo dal buffer direttamente nello spazio allocato
-        read(sockfd,clients[i],USERNAME_LENGHT);
+        read(sockfd,clients[i],sizeof(struct client_info));
     }
 
     clients_current = dim;
     
     system("clear");
     print_client(clients,clients_current);
+    fflush(stdout);
 }
 
 //Per la gesitone delle richieste
@@ -92,8 +89,14 @@ void request_handler(int sockfd){
     int exit_v;
     int scelta;
 
+    struct timeval timeout;
+
     while(1){
         tempfd = fd;
+
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+
         //Ci troviamo nel menu principale quindi stampo a schermo i client
         update_client(sockfd);
         //Stampo a schermo le scelte possibili
@@ -104,7 +107,7 @@ void request_handler(int sockfd){
         printf("> ");
         fflush(stdout);
         
-        if(select(sockfd+1,&tempfd,NULL,NULL,NULL) < 0){
+        if(select(sockfd+1,&tempfd,NULL,NULL,&timeout) < 0){
             perror("Select");
             //Comunico al server che esco
             send_client_exit(sockfd);
@@ -199,7 +202,7 @@ int choose_client(int sockfd){
     }
     else if(FD_ISSET(fileno(stdin), &fd)) {
         char buffer[32];
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+        if (safe_fgets(buffer, sizeof(buffer)) == 0) {
             printf("Errore nella lettura dell'input.\n");
             return -2;
         }
@@ -221,7 +224,14 @@ void handle_server_request(int sockfd){
     struct server_request_handler_pck pck;
 
     //leggo dal server quello che c'è da leggere
-    read(sockfd,&pck,sizeof(struct server_request_handler_pck));
+    int bytes = read(sockfd,&pck,sizeof(struct server_request_handler_pck));
+
+    if(bytes == 0 || bytes == -1){
+        system("clear");
+        printf("Server non è più accessibile\n");
+        wait_key_press();
+        exit(0);
+    }
 
     //Controllo quello che ho letto
     switch(pck.type){
@@ -241,10 +251,10 @@ void handle_connection_request(int sockfd,int index){
     system("clear");
 
     //Invio la richiesta
-    send_connection_request(sockfd,clients[index]);
+    send_connection_request(sockfd,clients[index]->buffer);
 
     //mando a la parte grafica
-    print_communication_wait(clients[index]);
+    print_communication_wait(clients[index]->buffer);
 
     while(1){
 
@@ -260,7 +270,8 @@ void handle_connection_request(int sockfd,int index){
                 communication(sockfd,v->buffer);
                 return;
             case 2:
-                print_communication_refuse((char*)pck.bytes);
+                print_communication_refuse(&pck,(char*)pck.bytes + sizeof(int));
+                wait_key_press();
                 return;
             default:
                 break;
@@ -292,7 +303,7 @@ void handle_connection_request_ricezione(int sockfd, struct server_request_handl
 
     if(FD_ISSET(fileno(stdin),&fd) && result > 0){
         //Leggo dal buffer
-        fgets(response,sizeof(char)*10,stdin);
+        safe_fgets(response,sizeof(char)*10);
         char *newline = strchr(response, '\n');
         if (newline) *newline = '\0';//Toglo il new line
 
@@ -340,9 +351,10 @@ void communication(int sockfd,char buffer[USERNAME_LENGHT]){
 
         if(FD_ISSET(fileno(stdin),&tempfd)){
             //leggo dallo stdin
-            fgets(msg,MAX_MSG_LENGHT,stdin);
+            safe_fgets(msg,MAX_MSG_LENGHT);
             msg[MAX_MSG_LENGHT-1] = '\0';
             msg[strcspn(msg, "\n")] = '\0';
+            
             //controllo se è un segnale di chiusura
             if(strcmp(msg,"/exit") == 0){
                 send_communication_exit(sockfd,&pck);
@@ -483,24 +495,35 @@ void wait_for_communication_exit(int sockfd,struct communication_handler_pck* pc
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //Funzioni per la parte grafica
 
-void print_client(char *buffers[],int n_client){
+void print_client(struct client_info **info, int n_client) {
     system("clear");
     printf("==========================================\n");
     printf("           CLIENT CONNESSI ATTUALI        \n");
-    
-    if(n_client > 0){
-        printf("==========================================\n\n");
-        printf(" #   | Username\n");
-        printf("-----+------------------------------\n");
-    
+    printf("==========================================\n\n");
+
+    if (n_client > 0) {
+        printf(" #   | Status   | Username\n");
+        printf("-----+----------+--------------------------\n");
+
         for (int i = 0; i < n_client; i++) {
-            printf(" %2d  | %s\n", i + 1, buffers[i]);
+            const char *state_str;
+            const char *color;
+
+            if (info[i]->status == 0) {
+                state_str = "free";
+                color = "\033[0;32m"; // Verde
+            } else {
+                state_str = "occupied";
+                color = "\033[0;33m"; // Giallo
+            }
+
+            printf(" %2d  | %s%-8s\033[0m | %s\n", i + 1, color, state_str, info[i]->buffer);
         }
-    
+
         printf("\n==========================================\n");
         printf(" Totale client connessi: %d\n", n_client);
         printf("==========================================\n");
-    }else{
+    } else {
         printf("In questo momento non sono presenti altri client...\nRiprova più tardi.\n\n");
     }
 }
@@ -518,8 +541,24 @@ void print_communication_accept(char buffer[USERNAME_LENGHT]){
     printf("\n\n%s ha accettato la comunicazione!\n", buffer);
 }
 
-void print_communication_refuse(char buffer[USERNAME_LENGHT]){
-    printf("\n\n%s ha rifiutato la comunicazione.\n", buffer);
+void print_communication_refuse(struct server_request_handler_pck *pck,char buffer[USERNAME_LENGHT]){
+    //Controllo il tipo di pacchetto
+    int status = *((int*)pck->bytes);
+
+    system("clear");
+
+    if(status == -1){
+        printf("Client non trovato, prova a riaggiornare la lista dei client\n");
+    }
+    
+    else if(status == -2){
+        printf("Il client selezionato è in un altra comunicazione, riprovare più tardi\n");
+    }
+
+    else{
+        printf("%s ha rifiutato la comunicazione.\n", buffer);
+    }
+    fflush(stdout);
 }
 
 void print_communication_request(char buffer[USERNAME_LENGHT]){
@@ -583,7 +622,7 @@ void change_clients_dim(int dim){
     clients = malloc(sizeof(char*)*dim);
 
     for(int i = 0; i < dim; i++){
-        clients[i] = malloc(sizeof(char)*USERNAME_LENGHT);
+        clients[i] = malloc(sizeof(struct client_info));
     }
 }
 
@@ -609,4 +648,18 @@ void strip_newline(char *str) {
     if (newline) {
         *newline = '\0';
     }
+}
+
+
+//Per prendere in input i valori in maniera sicura
+int safe_fgets(char *buffer,ssize_t dim){
+    if (fgets(buffer, dim, stdin) != NULL) {
+        // Controllo se il buffer contiene '\n'
+        if (strchr(buffer, '\n') == NULL) {
+            // '\n' non trovato: la riga era troppo lunga, pulisco il buffer
+            clear_input_buffer();
+        }
+        return 1;
+    }
+    return 0;
 }

@@ -79,13 +79,19 @@ void handler_pipe(int fdr,struct server_request_handler_pck* pck){
 void handle_sockets(int fdr,struct server_request_handler_pck* pck){
     //Leggo il pacchetto
     struct client* cli;
+    int bytes;
+    cli = get_client(fdr);
 
-    if(read(fdr,pck,sizeof(struct server_request_handler_pck)) < 0){
+    if((bytes = read(fdr,pck,sizeof(struct server_request_handler_pck))) < 0){
         perror("server handler read");
         return;
     }
 
-    cli = get_client(fdr);
+    if(bytes == 0){
+        remove_client_server(pck,cli);
+        return;
+    }
+
 
     switch(pck->type){
         case 0:
@@ -145,6 +151,10 @@ void create_connection_request(struct server_request_handler_pck* pck,struct cli
             return;
         }
     } 
+
+    //GLI STATI POSSIBILI SONO : 
+    //-1 SE IL CLIENT NON È STATO TROVATO
+    //-2 SE IL CLIENT È OCCUPATO
 
     //Nei restanti casi invio un pacchetto di tipo 2 connection refused
     send_connection_refuse(req->fd,buffer,status);
