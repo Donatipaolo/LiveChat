@@ -1,6 +1,6 @@
 # 💬 LiveChat
 
-**LiveChat** è un progetto personale che simula un'applicazione di chat in tempo reale, realizzata in C. È composto da un server e un client che comunicano tramite socket.
+**LiveChat** è un progetto personale che simula un'applicazione di chat in tempo reale, realizzata in C. È composto da un server e da client che comunicano tramite socket.
 
 ## 🚀 Funzionalità
 
