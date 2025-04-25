@@ -103,7 +103,8 @@ void request_handler(int sockfd){
         printf("Inserisci la tua scelta :\n");
         printf("0) Per Inviare una richiesta di comunicazione\n");
         printf("1) Per aggiornare la lista dei client\n");
-        printf("2) Per uscire dal programma\n");
+        printf("2) Per cambiare il tuo username\n");
+        printf("3) Per uscire dal programma\n");
         printf("> ");
         fflush(stdout);
         
@@ -137,6 +138,11 @@ void request_handler(int sockfd){
                             case 1:
                                 break;
                             case 2:
+                                send_change_username(sockfd);
+                                system("clear");
+                                change_username(sockfd);
+                                break;
+                            case 3:
                                 send_client_exit(sockfd);
                                 exit(0);
                             default:
@@ -499,6 +505,19 @@ void wait_for_communication_exit(int sockfd,struct communication_handler_pck* pc
         }
     }
 }
+
+void send_change_username(int sockfd){
+    //Invio un pacchetto di tipo 6
+    struct server_request_handler_pck pck;
+    
+    //Definizione del pacchetto
+    pck.type = 6;
+    pck.len = 0;
+
+    //Invio il pacchetto
+    write(sockfd,&pck,sizeof(struct server_request_handler_pck));
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //Funzioni per la parte grafica
 

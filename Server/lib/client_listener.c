@@ -1,6 +1,7 @@
 #include "client_listener.h"
 #include "client_handler.h"
 #include "mthread_handler.h"
+#include "server_request_handler.h"
 
 int initSocket(int domain, int type, int protocol, int IP, int port,struct sockaddr_in** addr_r){
 
@@ -78,6 +79,7 @@ void* client_listener(void* arg){
         pipe(pipefd);
 
         //Imposto i parametri
+        par = malloc(sizeof(struct parameters));
         par->file_descriptor = clientfd;
         par->boolean = 0; //Creazione di un nuovo utente
         par->pipefdr = pipefd[0];
@@ -85,7 +87,7 @@ void* client_listener(void* arg){
         //*((int*)(parameters + sizeof(int))) = id;
         // printf("Client.\nsockfd : %d\npipefd : %d\n\n",par->file_descriptor,par->pipefdr);
 
-	pthread_create(&id,NULL,init_client,(void*)par);
+	    pthread_create(&id,NULL,init_client,(void*)par);
         //aggiungo alla lista dei thread
 
         write(pipefd[1],&id,sizeof(pthread_t));
@@ -103,6 +105,7 @@ void* client_listener(void* arg){
 void* init_client(void *arg){
     //Prendo i parametri
     struct parameters par = *(struct parameters*)(arg);
+    free(arg);
     // printf("Inizializzazione del client.\nsockfd : %d\npipefd : %d\n\n",par.file_descriptor,par.pipefdr);
     //Inizializzo il buffer
     char buffer[USERNAME_LENGHT];
@@ -114,7 +117,7 @@ void* init_client(void *arg){
     close(par.pipefdr);
 
     //Inizializzo il result value
-    int result;
+    int result,bytes;
 
     // //TEST
     // ssize_t bytesRead = read(par.file_descriptor, buffer, 12);
@@ -128,15 +131,25 @@ void* init_client(void *arg){
         
         //read_form_fd(par.file_descriptor);
         //leggo dal client l'username
-        if(recv(par.file_descriptor, buffer, USERNAME_LENGHT, 0) < 0){
+        if((bytes = recv(par.file_descriptor, buffer, USERNAME_LENGHT, 0)) < 0){
             perror("Read");
             exit(1);
         }
-        buffer[USERNAME_LENGHT-1] = '\0';
 
+        if(bytes == 0){
+            if (par.boolean != 0){
+                //Eliminazione del client
+                remove_client_server(NULL,get_client(par.file_descriptor));
+            }
+
+            pthread_exit(NULL);
+        }
+
+        buffer[USERNAME_LENGHT-1] = '\0';
+        
         //comunico al client_handler di controllare se esiste un client con quel'username
-        result = exists_client(par.file_descriptor);
-    
+        result = is_taken_client(buffer);
+        
         //Invio il risultato al client
         write(par.file_descriptor,&result,sizeof(int));
 

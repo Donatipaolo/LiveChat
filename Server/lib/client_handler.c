@@ -241,6 +241,30 @@ void clients_update_pck(int sockfd){
     write(client_handler_id,&pck,sizeof(struct client_handler_pck));
 }
 
+
+void change_username_server(int clientfd){
+    //Inizializzazione della pipe
+    int pipefd[2];
+    pipe(pipefd);
+    pthread_t id;
+
+    //Inizializzazione del thread per il change name
+    struct parameters *par = (struct parameters*)malloc(sizeof(struct parameters));
+    par->boolean = 1;
+    par->file_descriptor = clientfd;
+    par->pipefdr = pipefd[0];
+    
+    FD_CLR(clientfd,&fd);
+
+    //Creo il thread
+    pthread_create(&id,NULL,init_client,par);
+
+    write(pipefd[1],&id,sizeof(pthread_t));
+    close(pipefd[1]);
+
+    create_thread(id,-1,7);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void read_client(struct client_handler_pck pck,int* fd, char *buffer, int* status){
@@ -479,7 +503,7 @@ int username_taken(const struct client_list* head,const char buffer[USERNAME_LEN
     const struct client_list* current = head;
 
     while(current != NULL){
-        if(strcmp(current->cli->username,buffer)!= 0)
+        if(strcmp(current->cli->username,buffer) == 0)
             return 1;
         current = current->next;
     }

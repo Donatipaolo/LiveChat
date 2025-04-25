@@ -69,6 +69,7 @@ void send_client_update(int sockfd);
 void send_client_exit(int sockfd);
 void send_communication_msg(int sockfd, char buffer[MAX_MSG_LENGHT],struct communication_handler_pck* pck);
 void send_communication_exit(int sockfd,struct communication_handler_pck* pck);
+void send_change_username(int sockfd); 
 void wait_for_communication_exit(int sockfd,struct communication_handler_pck* pck);
 void wait_for_start_communication(int sockfd);
 

@@ -113,6 +113,10 @@ void handle_sockets(int fdr,struct server_request_handler_pck* pck){
             //Code for update clients
             clients_update_pck(fdr);
             break;
+        case 6: 
+            //Change username pck
+            change_username_server(fdr);
+            break;
         default:
         break;
     }

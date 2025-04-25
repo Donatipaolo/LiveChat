@@ -2,6 +2,8 @@
 #define CLIENT_HANDLER_H
 #define USERNAME_LENGHT 100
 #include <stdlib.h>
+#include "client_listener.h"
+#include "mthread_handler.h"
 
 extern int client_handler_id;
 
@@ -39,6 +41,7 @@ int is_taken_client(char buffer[USERNAME_LENGHT]);
 void change_username_client(int fd,char buffer[USERNAME_LENGHT]);
 struct client* get_client_by_username(char buffer[USERNAME_LENGHT]);
 void clients_update_pck(int sockfd);
+void change_username_server(int clientfd);
 
 
 void read_client(struct client_handler_pck pck,int* fd, char *buffer, int* status);
