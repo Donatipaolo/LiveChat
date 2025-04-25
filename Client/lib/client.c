@@ -369,7 +369,14 @@ void communication(int sockfd,char buffer[USERNAME_LENGHT]){
         if(FD_ISSET(sockfd,&tempfd)){
 
             //Leggo il pacchetto:
-            read(sockfd,&pck,sizeof(struct communication_handler_pck));
+            int bytes = read(sockfd,&pck,sizeof(struct communication_handler_pck));
+
+            if(bytes == -1 || bytes == 0){
+                //Indico di chiudere la comunicazione 
+                system("clear");
+                printf("Il server è irraggiungibile\n");
+                exit(1);
+            }
 
             //controllo i risultati
             switch(pck.type){

@@ -8,6 +8,7 @@ void* communication_handler(void* args){
     int fdr = *((int*)args);
     free(args);
     pthread_t tr;
+    int bytes;
 
     //Leggo il mio thread identifiear
     read(fdr,&tr,sizeof(pthread_t));
@@ -58,12 +59,11 @@ void* communication_handler(void* args){
             if(FD_ISSET(fd_set_array[i],&temp_fd)){
                 if(i == 0){
                     //Comunicazione con il server Request Handler
-                    if (read(fd_set_array[i],&pck,sizeof(struct communication_handler_pck)) < 0) {
+                    if ((bytes = read(fd_set_array[i],&pck,sizeof(struct communication_handler_pck))) < 0) {
                         perror("read failed");
                         communication_closing_routine(client1, client2, tr);
                         pthread_exit(NULL);
                     }
-
 
                     switch (pck.type)
                     {
@@ -79,9 +79,15 @@ void* communication_handler(void* args){
                     //Messaggio da parte di un client
 
                     //Leggo il pacchetto
-                    if (read(fd_set_array[i],&pck,sizeof(struct communication_handler_pck)) < 0) {
+                    if ((bytes = read(fd_set_array[i],&pck,sizeof(struct communication_handler_pck))) < 0) {
                         perror("read failed");
                         communication_closing_routine(client1, client2, tr);
+                        pthread_exit(NULL);
+                    }
+
+
+                    if(bytes == 0){
+                        communication_closing_routine(client1,client2,tr);
                         pthread_exit(NULL);
                     }
 
