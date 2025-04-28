@@ -608,7 +608,15 @@ void print_init_communication(char buffer[USERNAME_LENGHT]){
 
 void print_my_msg(char buffer[MAX_MSG_LENGHT]){
     //elimino la righa corrente
-    clear_last_lines(1);
+    //Prendo la dimensione del terminale
+    struct winsize w;
+    
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+        perror("ioctl");
+        return;
+    }
+
+    clear_last_lines(1+ (strlen(buffer)/w.ws_col));
     printf("\033[1;32m");
     printf("[Tu]      : %s\n",buffer);
     printf("\033[0m");  // Reset dei colori

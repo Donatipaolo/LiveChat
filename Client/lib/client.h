@@ -8,7 +8,8 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdint.h>
-
+#include <sys/ioctl.h>
+#include <termios.h>
 
 //Definitions
 #define USERNAME_LENGHT 100
